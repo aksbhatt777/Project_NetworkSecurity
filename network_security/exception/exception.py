@@ -4,7 +4,7 @@ from network_security.logging import logger
 class NetworkSecurityException(Exception):
     def __init__(self,err_msg,err_details:sys):
         self.err_msg=err_msg
-        _,_,exc_tb = error_details.exc_info() ## not initialised bcoz never used outside init
+        _,_,exc_tb = err_details.exc_info() ## not initialised bcoz never used outside init
         
         self.lineno=exc_tb.tb_lineno
         self.file_name=exc_tb.tb_frame.f_code.co_filename 
