@@ -57,6 +57,20 @@ class DataIngestionConfig:
 # ============================================================================
 
 
-
+class DataValidationConfig:
+    def __init__(self,training_pc:TrainingPipelineConfig):
+        self.data_val_dir: str = os.path.join(training_pc.artifact_dir,constants.DATA_VALIDATION_DIR_NAME)
+        #print(self.data_val_dir)
+        self.valid_data_dir: str = os.path.join(self.data_val_dir, constants.DATA_VALIDATION_VALID_DIR)
+        self.invalid_data_dir: str = os.path.join(self.data_val_dir, constants.DATA_VALIDATION_INVALID_DIR)
+        self.valid_train_file_path: str = os.path.join(self.valid_data_dir, constants.TRAIN_FILE_NAME)
+        self.valid_test_file_path: str = os.path.join(self.valid_data_dir, constants.TEST_FILE_NAME)
+        self.invalid_train_file_path: str = os.path.join(self.invalid_data_dir, constants.TRAIN_FILE_NAME)
+        self.invalid_test_file_path: str = os.path.join(self.invalid_data_dir, constants.TEST_FILE_NAME)
+        self.drift_report_file_path: str = os.path.join(
+            self.data_val_dir,
+            constants.DATA_VALIDATION_DRIFT_REPORT_DIR,
+            constants.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME,
+        )
 
 
