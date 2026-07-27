@@ -11,11 +11,12 @@ print(constants.ARTIFACT_DIR)
 class TrainingPipelineConfig: ##config used by entire pipeline and other classes 
     def __init__(self,timestamp=datetime.now()):
         timestamp=timestamp.strftime("%m_%d_%Y_%H_%M_%S")
-        self.pipeline_name=constants.PIPELINE_NAME
-        self.artifact_name=constants.ARTIFACT_DIR
-        self.artifact_dir=os.path.join(self.artifact_name,timestamp)
-        self.model_dir=os.path.join("final_model")
+        self.pipeline_name=constants.PIPELINE_NAME 
+        self.artifact_name=constants.ARTIFACT_DIR #should print "artifacts" 
+        self.artifact_dir=os.path.join(self.artifact_name,timestamp) #concat timestamp as a sub dir to artifact
+        self.model_dir=os.path.join("final_model") 
         self.timestamp: str=timestamp
+
 ## this class initializes the shared configuration that every stage of the MLOps pipeline uses.
 
 class DataIngestionConfig:
@@ -73,4 +74,19 @@ class DataValidationConfig:
             constants.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME,
         )
 
+class DataTransformationConfig:
+    def __init__(self,training_pc:TrainingPipelineConfig):
+        self.data_trans_dir: str = os.path.join(training_pc.artifact_dir,constants.DATA_TRANSFORMATION_DIR_NAME)
+        self.trans_train_file_path: str = os.path.join(self.data_trans_dir,constants.DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR,constants.TRAIN_FILE_NAME.replace("csv","npy"))
+        self.trans_test_file_path: str = os.path.join(self.data_trans_dir,constants.DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR,constants.TEST_FILE_NAME.replace("csv","npy"))
+        self.trans_obj_file_path: str = os.path.join(self.data_trans_dir,constants.DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR,constants.PREPROCESSING_OBJECT_FILE_NAME) 
+    ## └── data_transformation/
+                    # ├── transformed/
+                    # │   ├── train.npy
+                    # │   └── test.npy
+                    # └── transformed_object/
+                    #     └── preprocessing.pkl
 
+
+
+            
