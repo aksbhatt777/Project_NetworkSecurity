@@ -87,6 +87,19 @@ class DataTransformationConfig:
                     # └── transformed_object/
                     #     └── preprocessing.pkl
 
+class ModelTrainerConfig:
+    def __init__(self,training_pc:TrainingPipelineConfig):
+        self.model_trainer_dir: str = os.path.join(training_pc.artifact_dir,constants.MODEL_TRAINER_DIR_NAME)
+        self.trained_model_file_path: str = os.path.join(self.model_trainer_dir,constants.MODEL_TRAINER_TRAINED_MODEL_DIR,constants.MODEL_FILE_NAME)
+        self.accuracy: float = constants.MODEL_TRAINER_EXPECTED_SCORE
+        self.overfit_underfit_threshold: float = constants.MODEL_TRAINER_OVER_FIITING_UNDER_FITTING_THRESHOLD
+    ## └── Model_trainer/
+                    # ├── trained_model/
+                    # │   ├── model.pkl
+                    ### other are float vals directly taken 
+                       
+
+
 
 
             

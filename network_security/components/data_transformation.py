@@ -75,6 +75,8 @@ class DataTransformation:
             test_arr=np.c_[transformed_X_test,np.array(y_test)]
 
             #save this concatenated np array
+            #param1- filepath/file name as what data is supposed to be saved 
+            #param2 - the file obtained in the step above  
             save_numpy_array_data(self.data_transformation_config.trans_train_file_path,train_arr)
             save_numpy_array_data(self.data_transformation_config.trans_test_file_path,test_arr)
             save_object(self.data_transformation_config.trans_obj_file_path,preprocessor_obj)
