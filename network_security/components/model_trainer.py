@@ -105,7 +105,7 @@ class ModelTrainer:
         # This wrapper works on production level on new unseen data 
 
         #model pusher
-        #save_object("final_model/model.pkl",best_model)
+        save_object("final_model/model.pkl",best_model)
 
         #put all in artifact 
         model_trainer_artifact=ModelTrainerArtifact(
