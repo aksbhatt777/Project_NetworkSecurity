@@ -43,8 +43,8 @@ DATA_TRANSFORMATION_TEST_FILE_PATH: str = "test.npy"
 
 
 #Model trainer related constants 
-SAVED_MODEL_DIR =os.path.join("saved_models")
-MODEL_FILE_NAME = "model.pkl"
+SAVED_MODEL_DIR =os.path.join("saved_models") #for pipeline
+MODEL_FILE_NAME = "model.pkl" #for pipeline
 MODEL_TRAINER_DIR_NAME: str = "model_trainer"
 MODEL_TRAINER_TRAINED_MODEL_DIR: str = "trained_model"
 MODEL_TRAINER_TRAINED_PICKLE_FILE: str = "model.pkl"
