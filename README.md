@@ -4,7 +4,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com/)
 [![MLflow](https://img.shields.io/badge/MLflow-Tracking-orange.svg)](https://mlflow.org/)
 [![Render](https://img.shields.io/badge/Render-Deployed-purple.svg)](https://render.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 An end-to-end MLOps project for detecting phishing and malicious URLs using machine learning. This project includes a complete data pipeline, model training with MLflow tracking, and a FastAPI-based prediction service.
 
