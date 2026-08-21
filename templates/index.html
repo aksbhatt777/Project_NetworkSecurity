@@ -9,11 +9,29 @@
         .status { padding: 10px; border-radius: 5px; margin: 20px 0; }
         .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .btn { display: inline-block; background: #3498db; color: white; padding: 10px 20px; 
-              text-decoration: none; border-radius: 5px; margin-top: 10px; }
+        .btn { 
+            display: inline-block; 
+            background: #3498db; 
+            color: white; 
+            padding: 10px 20px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
         .btn:hover { background: #2980b9; }
-        .endpoints { margin: 20px 0; }
-        .endpoint { background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .upload-box { 
+            border: 2px dashed #3498db; 
+            padding: 30px; 
+            text-align: center; 
+            border-radius: 10px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .upload-box input[type="file"] { margin: 10px 0; }
         code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
     </style>
 </head>
@@ -27,31 +45,33 @@
             {{ '✅ Loaded and Ready' if model_loaded else '❌ Not Loaded' }}
         </div>
         
+        <div class="upload-box">
+            <h3>📤 Upload CSV for Prediction</h3>
+            <p>Select a CSV file with network security features</p>
+            <form action="/predict" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".csv" required>
+                <br><br>
+                <button type="submit" class="btn btn-success">🔮 Predict</button>
+            </form>
+        </div>
+        
         <h2>📋 Available Endpoints:</h2>
-        <div class="endpoints">
-            <div class="endpoint">
+        <div style="margin: 20px 0;">
+            <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
                 <strong>POST /predict</strong> 
-                <span style="color: #6c757d;">- Upload CSV file for predictions</span>
+                <span style="color: #6c757d;">- Upload CSV for predictions</span>
             </div>
-            <div class="endpoint">
+            <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
                 <strong>GET /health</strong> 
                 <span style="color: #6c757d;">- Check API health status</span>
             </div>
-            <div class="endpoint">
+            <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px;">
                 <strong>GET /docs</strong> 
                 <span style="color: #6c757d;">- Interactive API documentation</span>
             </div>
         </div>
         
-        <h2>📝 How to Use:</h2>
-        <ol>
-            <li>Prepare a CSV file with network security features</li>
-            <li>Go to <code>/docs</code> or use curl/Postman</li>
-            <li>Send POST request to <code>/predict</code> with your CSV</li>
-            <li>View prediction results</li>
-        </ol>
-        
-        <a href="/docs" class="btn">📖 View API Documentation</a>
+        <a href="/docs" class="btn">📖 API Documentation</a>
     </div>
 </body>
 </html>

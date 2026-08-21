@@ -8,8 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 import uvicorn
-import certifi
-import pymongo
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +19,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from network_security.exception.exception import NetworkSecurityException
 from network_security.utils.main_utils.utils import load_object
 from network_security.utils.ML_utils.model.estimator import NetworkModel
 
@@ -60,9 +57,9 @@ async def load_model():
         model = load_object("final_model/model.pkl")
         network_model = NetworkModel(preprocessor=preprocessor, model=model)
         model_loaded = True
-        logger.info("Model loaded successfully!")
+        logger.info("✅ Model loaded successfully!")
     except Exception as e:
-        logger.error(f"Failed to load model: {e}")
+        logger.error(f"❌ Failed to load model: {e}")
         model_loaded = False
 
 # Health check endpoint
@@ -82,7 +79,7 @@ async def root(request: Request):
         {"request": request, "model_loaded": model_loaded}
     )
 
-# Prediction endpoint
+# Prediction endpoint - shows results as HTML table AND saves file on server
 @app.post("/predict")
 async def predict(request: Request, file: UploadFile = File(...)):
     try:
@@ -92,7 +89,7 @@ async def predict(request: Request, file: UploadFile = File(...)):
         
         # Read CSV
         df = pd.read_csv(file.file)
-        logger.info(f"Received file: {file.filename} with {len(df)} rows")
+        logger.info(f"📁 Received file: {file.filename} with {len(df)} rows")
         
         # Check if model is loaded
         if not model_loaded:
@@ -102,31 +99,49 @@ async def predict(request: Request, file: UploadFile = File(...)):
         predictions = network_model.predict(df)
         df['predicted_column'] = predictions
         
-        # Save output
+        # ====== SAVE FILE ON SERVER WITH TIMESTAMP ======
         os.makedirs('prediction_output', exist_ok=True)
-        output_path = f'prediction_output/output_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+        filename = f'predictions_{timestamp}.csv'
+        output_path = f'prediction_output/{filename}'
         df.to_csv(output_path, index=False)
+        logger.info(f"✅ File saved on server: {output_path}")
+        # ================================================
         
-        # Return HTML table
-        table_html = df.to_html(classes='table table-striped', index=False)
+        # Generate HTML table
+        table_html = df.to_html(classes='table table-striped table-bordered', index=False)
+        
+        # Count predictions
+        phishing_count = int((predictions == 1).sum())
+        safe_count = int((predictions == 0).sum())
+        
+        # Return HTML with results
         return templates.TemplateResponse(
-            "table.html", 
-            {"request": request, "table": table_html, "rows": len(df)}
+            "results.html",
+            {
+                "request": request,
+                "table": table_html,
+                "total_rows": len(df),
+                "phishing_count": phishing_count,
+                "safe_count": safe_count,
+                "filename": file.filename,
+                "saved_filename": filename  # ← Show the saved filename
+            }
         )
         
     except HTTPException as he:
         raise he
     except Exception as e:
-        logger.error(f"Prediction error: {e}")
+        logger.error(f"❌ Prediction error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Main entry point
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
         port=port,
-        workers=int(os.getenv("WORKERS", 1)), # Changed from 4 to 1 for render
+        workers=int(os.getenv("WORKERS", 1)),
         log_level=os.getenv("LOG_LEVEL", "info")
     )
