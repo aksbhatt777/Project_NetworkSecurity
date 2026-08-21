@@ -1,99 +1,132 @@
-#### This is a FastAPI application that provides:
-# Training endpoint - Trains a ML model for network security
-# Prediction endpoint - Predicts network security threats based on uploaded data
-# Web interface - Shows prediction results in a HTML table
-
 import sys
 import os
-
-import certifi
-ca = certifi.where()
-
-from dotenv import load_dotenv
-load_dotenv()
-mongo_db_url = os.getenv("MONGODB_URL_KEY")
-print(mongo_db_url)
-import pymongo
-from network_security.exception.exception import NetworkSecurityException
-from network_security.logging.logger import logging
-from network_security.pipeline.training_pipeline import TrainingPipeline
-
-# some fastapi libraries 
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, File, UploadFile,Request #for files pulling and alll
-from uvicorn import run as app_run #to run the app 
-from fastapi.responses import Response
-from starlette.responses import RedirectResponse
+import logging
 import pandas as pd
+from fastapi import FastAPI, File, UploadFile, Request, HTTPException
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from dotenv import load_dotenv
+import uvicorn
+import certifi
+import pymongo
 
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+from network_security.exception.exception import NetworkSecurityException
 from network_security.utils.main_utils.utils import load_object
-
 from network_security.utils.ML_utils.model.estimator import NetworkModel
 
+# Initialize FastAPI app
+app = FastAPI(
+    title="Network Security Prediction API",
+    description="ML-based Network Security Threat Detection System",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
-client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
-
-from network_security.constants import DATA_INGESTION_COLLECTION_NAME
-from network_security.constants import DATA_INGESTION_DATABASE_NAME
-
-database = client[DATA_INGESTION_DATABASE_NAME]
-collection = database[DATA_INGESTION_COLLECTION_NAME]
-
-
-#basic set ups for fast api
-app = FastAPI()
-origins = ["*"]
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-from fastapi.templating import Jinja2Templates # reposible to pick up the html templates
+# Templates
 templates = Jinja2Templates(directory="./templates")
 
-#this is for homepage
-@app.get("/", tags=["authentication"])
-async def index():
-    return RedirectResponse(url="/docs")
+# Global variables
+network_model = None
+model_loaded = False
 
-@app.get("/train") #this one trains the entire training pipeline
-async def train_route():
+# Model loading on startup
+@app.on_event("startup")
+async def load_model():
+    global network_model, model_loaded
     try:
-        train_pipeline=TrainingPipeline() #initiation of training pipeline
-        train_pipeline.run_pipeline()
-        return Response("Training is successful")
+        logger.info("Loading model...")
+        preprocessor = load_object("final_model/preprocessor.pkl")
+        model = load_object("final_model/model.pkl")
+        network_model = NetworkModel(preprocessor=preprocessor, model=model)
+        model_loaded = True
+        logger.info("Model loaded successfully!")
     except Exception as e:
-        raise NetworkSecurityException(e,sys)
-    
-# A route that predicts 
+        logger.error(f"Failed to load model: {e}")
+        model_loaded = False
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "model_loaded": model_loaded,
+        "service": "Network Security API"
+    }
+
+# Root endpoint
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse(
+        "index.html", 
+        {"request": request, "model_loaded": model_loaded}
+    )
+
+# Prediction endpoint
 @app.post("/predict")
-async def predict_route(request: Request,file: UploadFile = File(...)): #uploadfile is part of fastapi 
+async def predict(request: Request, file: UploadFile = File(...)):
     try:
-        df=pd.read_csv(file.file)
-        #print(df)
-        preprocesor=load_object("final_model/preprocessor.pkl") #pushed pkl file
-        final_model=load_object("final_model/model.pkl") #pushed pkl file
-        network_model = NetworkModel(preprocessor=preprocesor,model=final_model)
-        print(df.iloc[0])
-        y_pred = network_model.predict(df) # does transformation , then prediction 
-        print(y_pred)
-        df['predicted_column'] = y_pred #appending in a new column  
-        print(df['predicted_column'])
-        #df['predicted_column'].replace(-1, 0)
-        #return df.to_json()
-        df.to_csv('prediction_output/output.csv')
-        table_html = df.to_html(classes='table table-striped')
-        #print(table_html)
-        return templates.TemplateResponse("table.html", {"request": request, "table": table_html})
+        # Validate file
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(status_code=400, detail="Only CSV files are accepted")
         
+        # Read CSV
+        df = pd.read_csv(file.file)
+        logger.info(f"Received file: {file.filename} with {len(df)} rows")
+        
+        # Check if model is loaded
+        if not model_loaded:
+            raise HTTPException(status_code=503, detail="Model not loaded")
+        
+        # Make predictions
+        predictions = network_model.predict(df)
+        df['predicted_column'] = predictions
+        
+        # Save output
+        os.makedirs('prediction_output', exist_ok=True)
+        output_path = f'prediction_output/output_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        df.to_csv(output_path, index=False)
+        
+        # Return HTML table
+        table_html = df.to_html(classes='table table-striped', index=False)
+        return templates.TemplateResponse(
+            "table.html", 
+            {"request": request, "table": table_html, "rows": len(df)}
+        )
+        
+    except HTTPException as he:
+        raise he
     except Exception as e:
-            raise NetworkSecurityException(e,sys)
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-#the entrypoint     
-if __name__=="__main__":
-    app_run(app,host="0.0.0.0",port=8000)
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=port,
+        workers=int(os.getenv("WORKERS", 4)),
+        log_level=os.getenv("LOG_LEVEL", "info")
+    )

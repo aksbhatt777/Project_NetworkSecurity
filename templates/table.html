@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Security - Prediction Results</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { background: #f0f2f5; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stats { background: #e8f4f8; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .stats strong { color: #2c3e50; }
+        .table { margin-top: 20px; }
+        .table th { background: #3498db; color: white; }
+        .table tr:hover { background: #f8f9fa; }
+        .btn { margin-top: 20px; }
+        .badge-success { background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; }
+        .badge-danger { background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📊 Prediction Results</h2>
+        
+        <div class="stats">
+            <strong>Total Predictions:</strong> {{ rows }} rows processed
+            <span style="margin-left: 20px;">
+                <strong>Status:</strong> 
+                <span class="badge-success">✅ Completed</span>
+            </span>
+        </div>
+        
+        <div class="table-responsive">
+            {{ table | safe }}
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <a href="/" class="btn btn-primary">← Back to Home</a>
+            <a href="/docs" class="btn btn-secondary">📖 API Docs</a>
+        </div>
+    </div>
+</body>
+</html>

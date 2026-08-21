@@ -56,7 +56,7 @@ class ModelTrainer:
             },
             "Random Forest":{
                 # 'criterion':['gini', 'entropy', 'log_loss'],                
-                 'max_features':['sqrt','log2',None],
+                'max_features':['sqrt','log2',None],
                 'n_estimators': [8,16,32,128,256]
             },
             "Gradient Boosting":{

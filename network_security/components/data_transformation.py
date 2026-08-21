@@ -54,15 +54,23 @@ class DataTransformation:
             train_df=DataTransformation.read_data(self.data_validation_artifact.valid_train_file_path)
             test_df=DataTransformation.read_data(self.data_validation_artifact.valid_test_file_path)
 
+            # Remove Unnamed: 0 if present
+            if 'Unnamed: 0' in train_df.columns:
+                train_df = train_df.drop(columns=['Unnamed: 0'])
+                logging.info("Removed 'Unnamed: 0' from train_df")
+            if 'Unnamed: 0' in test_df.columns:
+                test_df = test_df.drop(columns=['Unnamed: 0'])
+                logging.info("Removed 'Unnamed: 0' from test_df")
+
             #Training Dataframe
             X_train=train_df.drop(columns=[TARGET_COLUMN],axis=1)
             y_train=train_df[TARGET_COLUMN]
-            y_train=train_df.replace(-1,0)
+            y_train=y_train.replace(-1,0)
 
             #Test DF
             X_test=test_df.drop(columns=[TARGET_COLUMN],axis=1)
             y_test=test_df[TARGET_COLUMN]
-            y_test=test_df.replace(-1,0)
+            y_test=y_test.replace(-1,0)
 
             #calling the pipeline processor 
             preprocessor=self.get_transform_obj() #calls instance method

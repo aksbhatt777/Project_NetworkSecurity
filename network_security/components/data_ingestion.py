@@ -65,8 +65,8 @@ class DataIngestion:
             os.makedirs(dir_path,exist_ok=True) #both train and test.csv will be in same dir
 
             logging.info(f"Exporting train and test file path.")
-            train_set.to_csv(self.data_ingestion_config.training_file_path)
-            test_set.to_csv(self.data_ingestion_config.testing_file_path)
+            train_set.to_csv(self.data_ingestion_config.training_file_path, index=False)
+            test_set.to_csv(self.data_ingestion_config.testing_file_path, index=False)
             logging.info(f"Exported train and test file path.")
 
         except Exception as e:
