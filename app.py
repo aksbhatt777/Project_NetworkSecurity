@@ -127,6 +127,6 @@ if __name__ == "__main__":
         "app:app",
         host="0.0.0.0",
         port=port,
-        workers=int(os.getenv("WORKERS", 4)),
+        workers=int(os.getenv("WORKERS", 1)), # Changed from 4 to 1 for render
         log_level=os.getenv("LOG_LEVEL", "info")
     )
